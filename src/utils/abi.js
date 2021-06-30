@@ -1,4 +1,4 @@
-export const contractAddr = '0x04226e8Ee927a77572f6b5067d73a85BecDA1BFC';
+export const contractAddr = '0x8085B6d4E246680906f1695849841c827b3Bc004';
 export const abi = [
   {
     "inputs": [
@@ -426,7 +426,7 @@ export const abi = [
   }
 ]
 
-export const dataAddr = '0xE8bF4EEB1aa38e963e26aB4dbaDDC49D8e6Dfe4C'
+export const dataAddr = '0x1101E9156e429F9e428ABf00Eb5569087266603f'
 export const dataAbi =  [
   {
     "inputs": [],
@@ -877,5 +877,81 @@ export const dataAbi =  [
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "count",
+        "type": "uint256"
+      }
+    ],
+    "name": "addPlayCount",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "number",
+        "type": "uint256"
+      }
+    ],
+    "name": "setLastPlayNumber",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPlayCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      }
+    ],
+    "name": "getLastPlayNumber",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
   }
 ]

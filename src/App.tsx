@@ -12,24 +12,24 @@ function App() {
 
   const [unitPrice, setUnitPrice] = useState('')        //彩票单价
   const [inputPrice, setInputPrice] = useState('')   //输入的彩票价格
+
   const [bigPrize, setBigPrize] = useState('')          //大奖奖金                      
   const [smallPrize, setSmallPrize] = useState('')   //小奖奖金
   const [inputBigPrize, setInputBigPrize] = useState('')          //输入的大奖奖金                      
   const [inputSmallPrize, setInputSmallPrize] = useState('')   //输入的小奖奖金
 
-  const [numberTemp, setNumberTemp] = useState('')  //号码，方便测试用，开奖后仍可以继续购买指定期数的彩票
-  const [periodTemp, setPeriodTemp] = useState('')       //期数，方便测试用，开奖后仍可以继续购买指定期数的彩票
-
   const [number, setNumber] = useState('')    //购买彩票号码         
   const [quantity, setQuantity] = useState('')   //购买彩票注数
-
   const [inputExchangeNumber, setInputExchangeNumber] = useState('')  //输入的兑奖号码
   const [inputExchangePeriod, setInputExchangePeriod] = useState('')         //输入的兑奖期数
 
-  const [selectedPeriod, setSelectedPeriod] = useState('')                            //查看哪一期
+  const [selectedPeriod, setSelectedPeriod] = useState('')                          //指定期数
   const [selectedTickets, setSelectedTickets] = useState([])                          //查询用户购买的指定期数的彩票
 
   const [openNumberList, setOpenNumberList] = useState([])                    //开奖号码列表
+
+  const [numberTemp, setNumberTemp] = useState('')  //号码，方便测试用，开奖后仍可以继续购买指定期数的彩票
+  const [periodTemp, setPeriodTemp] = useState('')       //期数，方便测试用，开奖后仍可以继续购买指定期数的彩票
 
   useEffect(() => {
     (async ()=>{
@@ -62,6 +62,11 @@ function App() {
       let selectedTickets = await lotteryContract.methods.getSelectedTickets(lotteryList.length).call();  //查询当前期的用户彩票
       console.log('getSelectedTickets',selectedTickets);
       setSelectedTickets(selectedTickets);
+
+      //设置select下拉框的初值，最新一期的下标(下标从0开始，0对应第一期)
+      setSelectedPeriod(lotteryList.length);
+      setInputExchangePeriod(lotteryList.length);
+      setPeriodTemp(lotteryList.length);
     })()
   }, [])
 
@@ -195,13 +200,31 @@ function App() {
     setSmallPrize(small)
   }
 
+  //指定用户购买期数
+  const setUserSelected =  (value:string) => {
+    setSelectedPeriod(value);
+    console.log(value);
+  }
+
+  //指定兑奖期数
+  const setExchangeSelected =  (value:string) => {
+    setInputExchangePeriod(value);
+    console.log("wwwwwwwwwwwww");
+    console.log(value);
+  }
+
+  //指定测试购买期数
+  const setTempSelected =  (value:string) => {
+    setPeriodTemp(value);
+    console.log(value);
+  }
+
   //获取当前期用户购买的彩票列表
-  const getTickets = async (currentPeriod = openNumberList.length)=>{  
-    console.log(';openNumberList',openNumberList);
-    let data = await contractIns.methods.getSelectedTickets(currentPeriod).call({
+  const getSelectedTickets = async ()=>{  
+    let data = await contractIns.methods.getSelectedTickets(selectedPeriod).call({
       from:account
     })
-    console.log('getTickets',data);
+    console.log('getSelectedTickets',data);
     setSelectedTickets(data)
   }
 
@@ -215,6 +238,10 @@ function App() {
     })
     console.log('draw',data1,'openNumberList',data2);
     setOpenNumberList(data2)
+    
+    setSelectedPeriod(data2.length);
+    setInputExchangePeriod(data2.length);
+    setPeriodTemp(data2.length);
 
     getUserBalance();
   }
@@ -235,6 +262,11 @@ function App() {
       {
         alert('请输入注数');
         return;
+      }
+      else if(parseInt(quantity)  > 20)
+      {
+          alert('每次购买注数不能超过20注');
+          return;
       }
       else
       {
@@ -266,6 +298,11 @@ function App() {
             alert('请输入注数');
             return;
           }
+          else if(parseInt(quantity)  > 20)
+          {
+            alert('每次购买注数不能超过20注');
+            return;
+          }
           else
           {
             quantityValue = Number(quantity);
@@ -282,7 +319,7 @@ function App() {
       }
     }
     
-    getTickets();  //显示当前期用户购买的彩票
+    getSelectedTickets();  //显示当前期用户购买的彩票
 
     getUserBalance();
   }
@@ -292,12 +329,9 @@ function App() {
     if(inputExchangeNumber.length !== 4) {
       alert('请输入四位兑奖号码')
       return;
-    } 
-    if(!inputExchangePeriod) {
-      alert('请输入兑奖期数')
-      return;
-    } 
-    
+    }  
+    console.log(inputExchangePeriod);
+    console.log(openNumberList.length);
     if(Number(inputExchangePeriod) >= openNumberList.length)
     {
       alert('尚未开奖')
@@ -341,7 +375,7 @@ function App() {
       from:account
     })
     console.log('data:',data);
-    getTickets();  //更新当前期用户购买的彩票
+    getSelectedTickets();  //更新当前期用户购买的彩票
 
     getUserBalance();
   }
@@ -382,6 +416,22 @@ function App() {
     return str;
   }
   
+  const NumberDisplay= (number:string) => {
+      if(number.length == 1)
+      {
+        number = "000"+number;
+      }
+      else if(number.length == 2)
+      {
+        number = "00"+number;
+      }
+      else if(number.length == 3)
+      {
+        number = "0"+number;
+      }
+      return number;
+  }
+
   return (
     <div style={{padding:'10px'}}>
       <h2>管理员设置页面</h2>
@@ -405,7 +455,7 @@ function App() {
         <span>大奖奖金:{bigPrize} &nbsp;&nbsp;&nbsp;</span>
         <span>小奖奖金:{smallPrize} &nbsp;&nbsp;&nbsp;</span>
         <br/><br/>
-        <span style={{color:"red"}}>当前期:  第{openNumberList.length}期 &nbsp;&nbsp;&nbsp;</span><button onClick={draw}>开奖</button>
+        <span style={{color:"red"}}>当前期:  第{openNumberList.length+1}期 &nbsp;&nbsp;&nbsp;</span><button onClick={draw}>开奖</button>
       </div>
 
       <h2>用户购买页面</h2>
@@ -417,14 +467,21 @@ function App() {
         <button onClick={play} style={{marginLeft:'20px'}}>购买</button>
         <br/><br/>
         <div>
-          <input type="text" value={selectedPeriod} onChange={(e)=>setSelectedPeriod(e.target.value)} placeholder='选择期数' />
-          <button onClick={(e:any)=>getTickets(Number(selectedPeriod as string))} style={{marginLeft:'20px'}}>查看已购彩票</button>
+          <select onChange={(e)=>setUserSelected(e.target.value)}>
+          {
+            openNumberList.map((item:any,i:number) =>(
+                <option value={i}>第{i+1}期</option>
+            ))
+          }
+          <option value={openNumberList.length}>第{openNumberList.length+1}期</option>
+          </select>
+          <button onClick={(e:any)=>getSelectedTickets()} style={{marginLeft:'20px'}}>查看已购彩票</button>
         </div>
         {
           selectedTickets.map((item:any,i:number) =>(
             <div key={i}>
-              <span>期数:{item.period} &nbsp;&nbsp;&nbsp;</span>
-              <span>号码:{item.number} &nbsp;&nbsp;&nbsp;</span>
+              <span>期数:{Number(item.period)+1} &nbsp;&nbsp;&nbsp;</span>
+              <span>号码:{NumberDisplay(item.number)} &nbsp;&nbsp;&nbsp;</span>
               <span>数量:{item.quantity} &nbsp;&nbsp;&nbsp;</span>
               <span>{item.exchangeStatus==false?"未兑奖":"已兑奖,"+(item.winStatus==0?"未中奖":(item.winStatus==1?"中大奖":"中小奖"))}</span>
             </div>
@@ -435,7 +492,7 @@ function App() {
         <h4>开奖信息</h4>
         {
           openNumberList.map((item:any,i:number) =>(
-            <p key={i} style={{color:"blue"}}>第{i}期&nbsp;&nbsp;&nbsp;开奖号码: {item}</p>
+            <p key={i} style={{color:"blue"}}>第{i+1}期&nbsp;&nbsp;&nbsp;开奖号码: {NumberDisplay(item)}</p>
           ))
         }
       </div>
@@ -444,7 +501,14 @@ function App() {
         <h4>兑奖</h4>
         <div>
           <input type="text" placeholder='请输入你的兑奖号码' value={inputExchangeNumber} onChange={(e)=>setInputExchangeNumber(e.target.value.replace(/\D/g, ''))} maxLength={4}/>
-          <input type="text" placeholder='请输入你的兑奖期数' value={inputExchangePeriod} onChange={(e)=>setInputExchangePeriod(e.target.value.replace(/\D/g, ''))} style={{marginLeft:'20px'}}/>
+          <select onChange={(e)=>setExchangeSelected(e.target.value)}>
+          {
+            openNumberList.map((item:any,i:number) =>(
+                <option value={i}>第{i+1}期</option>
+            ))
+          }
+          <option value={openNumberList.length}>第{openNumberList.length+1}期</option>
+          </select>
         <button onClick={exchange} style={{marginLeft:'20px'}}>兑奖</button>
         </div>
       </div>
@@ -452,7 +516,14 @@ function App() {
       <div>
         <p>测试用，便于开奖后购买开奖号码</p>
         <input type="text" value={numberTemp} onChange={(e)=>setNumberTemp(e.target.value.replace(/\D/g, ''))} placeholder='号码' maxLength={4}/>
-        <input type="text" value={periodTemp} onChange={(e)=>setPeriodTemp(e.target.value)} placeholder='期数' style={{marginLeft:'20px'}}/>
+        <select onChange={(e)=>setTempSelected(e.target.value)}>
+          {
+            openNumberList.map((item:any,i:number) =>(
+                <option value={i}>第{i+1}期</option>
+            ))
+          }
+          <option value={openNumberList.length}>第{openNumberList.length+1}期</option>
+          </select>
         <button onClick={setTicketTemp} style={{marginLeft:'20px'}}>购买彩票</button>
       </div>
     </div>

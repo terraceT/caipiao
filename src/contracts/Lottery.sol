@@ -81,11 +81,16 @@ contract Lottery is Ownable{
     function playRandom(uint256 quantity) public payable needPause {
         uint unitPrice = data.getUnitPrice();
         require(msg.value == unitPrice * quantity,'value is not correct');
+        uint256 userNum=data.getOpenNumberListLength();
         for (uint256 index = 0; index < quantity; index++) { 
-            bytes memory b1 = abi.encodePacked(block.timestamp,block.difficulty,msg.sender); //紧密打包编码
+            //bytes memory b1 = abi.encodePacked(block.timestamp,block.difficulty,msg.sender); //紧密打包编码
+            bytes memory b1 = abi.encodePacked(block.timestamp,userNum+index,msg.sender); //紧密打包编码
             bytes32 b2 = keccak256(b1); //Keccak256哈希算法(SHA3的变种)做哈希
             uint256 number = uint256(b2) % 10000; //取4位数
             data.pushTickets(msg.sender,number,b2); //保存用户购买彩票信息：机选1注
+            uint256 period = data.getPeriod();
+            data.addPlayCount(period,1);
+            data.setLastPlayNumber(period,number);
             emit GetPlay(msg.sender,number,1,b2); //记录购买事件
         }
     }
@@ -95,14 +100,19 @@ contract Lottery is Ownable{
         uint unitPrice = data.getUnitPrice();
         require(msg.value == unitPrice * quantity,'value is not correct');
         data.pushTickets(msg.sender,number,quantity,0); //保存用户购买彩票信息：人选quantity注number
+        uint256 period = data.getPeriod();
+        data.addPlayCount(period,quantity);
+        data.setLastPlayNumber(period,number);
         emit GetPlay(msg.sender,number,quantity,0); //记录购买事件
         return number; //返回人选号码
     }
     
     //开奖
     function draw() public onlyOwner needPause {  //先检查状态，暂停状态下不能开奖
-        bytes memory b1 = abi.encodePacked(block.timestamp,block.difficulty,msg.sender); //紧密打包编码
-        bytes32 b2 = keccak256(b1); //Keccak256哈希算法(SHA3的变种)做哈希
+        uint256 period = data.getPeriod();
+        //依据购买次数和最后一个购买号码，就无法作弊，因为你在当前状态算出开奖号码后，如果再下注买，就会改变原来的开奖号码，也就无法中奖。同时它们都是保存在区块链上的，可查证验证，保证了公平
+        bytes memory b1 = abi.encodePacked(block.timestamp,data.getPlayCount(period),data.getLastPlayNumber(period)); //紧密打包编码
+        bytes32 b2 = keccak256(b1); //Keccak256哈希算法(SHA3的变种)做哈希f
         uint256 number = uint256(b2) % 10000; //取4位数
         data.pushOpenNumberList(number); //保存开奖号码
         emit GetDraw(number); //记录开奖事件

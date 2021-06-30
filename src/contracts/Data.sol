@@ -20,6 +20,14 @@ contract Data is Ownable{
 
     mapping(address => mapping(uint =>lotteryInfo[])) ownerTickets; //address : 用户地址    mapping里的unit：第几期    lotteryInfo[]：用户购买号码信息数组，每个号码对应一个loteryInfo结构
 
+    struct StatisticInfo {
+        uint256 count; //每期总购买次数
+        uint256 lastPlayNumber; //每期最后一次购买的号码
+        bool isVaild;
+    }
+    mapping(uint =>StatisticInfo) statisticInfo;
+
+
     constructor() {
         unitPrice = 0.01 ether;
         bigPrize = 0.1 ether;
@@ -100,5 +108,39 @@ contract Data is Ownable{
     //置中奖状态winStatus    0：未中奖    1：中大奖      2：中小奖
     function setWinStatus(address owner,uint256 period,uint256 index,uint winStatus) public {
         ownerTickets[owner][period][index].winStatus=winStatus;
+    }
+
+    function addPlayCount(uint256 period,uint256 count) public {
+        if(!statisticInfo[period].isVaild)
+        {
+            statisticInfo[period].count = count;
+             statisticInfo[period].lastPlayNumber = 0;
+              statisticInfo[period].isVaild = true;
+        }
+        else
+        {
+            statisticInfo[period].count += count;
+        }
+    }
+
+    function setLastPlayNumber(uint256 period,uint256 number) public {
+        if(!statisticInfo[period].isVaild)
+        {
+            statisticInfo[period].count = 0;
+             statisticInfo[period].lastPlayNumber = number;
+              statisticInfo[period].isVaild = true;
+        }
+        else
+        {
+            statisticInfo[period].lastPlayNumber = number;
+        }
+    }
+
+    function getPlayCount(uint256 period) public view returns(uint256)  {
+        return statisticInfo[period].count;
+    }
+
+    function getLastPlayNumber(uint256 period) public view returns(uint256)  {
+        return statisticInfo[period].lastPlayNumber;
     }
 }
